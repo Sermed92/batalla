@@ -47,7 +47,7 @@
             }
             case 'n':
             {
-                nvalue = optarg - '0';
+                nvalue = &optarg - '0';
                 break;
             }
             case '?':
@@ -71,11 +71,6 @@
     if ((hflag==1) && (pflag==1)){
         printf("-h y -p son opciones excluyentes\n");
         exit(1);
-    } else if (hflag==1) {
-        //Se trabajara con hilos
-    } else {
-        // p opcion por defecto, no entrara si se da el argumento de hilo
-        //Se trabajara con procesos
     }
 
     // Seccion de lectura del archivo
@@ -88,26 +83,29 @@
     }
 
     int tamanio, objetivos, numBombas, cord1, cord2, valor;
+    
+    fscanf(archivo,"%d",&tamanio);
+ 
+   	int campoB[tamanio][tamanio];
 
-    fscanf(archivo,"%d",tamanio);
-
-    int campoB[tamanio][tamanio];
-
-    fscanf(archivo,"%d",objetivos);
+    fscanf(archivo,"%d",&objetivos);
 
     // Se guardan los objetivos en la matriz
-    for (int i = 0; i<objetivos, i++){
+    int i;
+
+    for (i = 0; i<objetivos; i++){
         fscanf(archivo,"%d %d %d", &cord1, &cord2, &valor);
         campoB[cord1][cord2] = valor;
     }
 
-    fscanf(archivo,"%d",numBombas);
+    fscanf(archivo,"%d",&numBombas);
 
     int bombas[numBombas][4];
     int radio, potencia;
 
     //Se guardan las bombas que serán usadas
-    for (int i = 0; i<numBombas, i++){
+
+    for (i = 0; i<numBombas; i++){
         fscanf(archivo,"%d %d %d %d", &cord1, &cord2, &radio, &potencia);
         bombas[i][0] = cord1;
         bombas[i][1] = cord2;
@@ -116,7 +114,16 @@
     }
 
     fclose(archivo);
-    
+
+    if (hflag==1) {
+        //Se trabajara con hilos
+        printf("Soy hilos\n");
+    } else {
+        // p opcion por defecto, no entrara si se da el argumento de hilo
+        //Se trabajara con procesos
+        printf("Soy procesos\n");
+    }
+
     return 0;
 
  }
