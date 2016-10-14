@@ -24,16 +24,6 @@
     }
  }
 
- void imprimir_matriz(int tamanio, int campoB[tamanio][tamanio]) {
-    for (int i = 0; i < tamanio; i++) {
-        printf("[");
-        for (int j = 0; j < tamanio; j++) {
-            printf("%i, ", campoB[i][j]);
-        }
-        printf("]\n");
-    }
- }
-
  int main (int argc, char** argv){
 
     numeroArgumentos(argc);
@@ -104,6 +94,7 @@
             campoB[i][j] = 0;
         }
     }
+    
 
     fscanf(archivo,"%d",&objetivos);
 
@@ -114,8 +105,6 @@
         fscanf(archivo,"%d %d %d", &cord1, &cord2, &valor);
         campoB[cord1][cord2] = valor;
     }
-
-    imprimir_matriz(tamanio, campoB);
 
     fscanf(archivo,"%d",&numBombas);
 
@@ -137,10 +126,12 @@
     if (hflag==1) {
         //Se trabajara con hilos
         printf("Soy hilos\n");
+        printf("N=%i\n",nvalue);
     } else {
         // p opcion por defecto, no entrara si se da el argumento de hilo
         //Se trabajara con procesos
         printf("Soy procesos\n");
+        printf("N=%i\n",nvalue);
     }
 
     return 0;
