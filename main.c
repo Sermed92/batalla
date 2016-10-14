@@ -3,6 +3,7 @@
  * Autores:
  *          RECUERDA COLOCARTE
  *          Sergio Medina 09-11259
+ *          Lucio Mederos 13-10856
  * Descripción:   
  */
 
@@ -11,6 +12,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
+#include "batalla.h"
 
 // Finaliza el programa si no posee la cantidad de argumentos necesarios, despues de indicar la forma correcta
  void numeroArgumentos(int cantidad){
@@ -19,6 +21,16 @@
         printf("./batalla [-p] [-h] [-n <cantidad>] <archivo_entrada> \n");
         printf("Notese que los parametros entre [] son opcionales\n");
         exit(1);
+    }
+ }
+
+ void imprimir_matriz(int tamanio, int campoB[tamanio][tamanio]) {
+    for (int i = 0; i < tamanio; i++) {
+        printf("[");
+        for (int j = 0; j < tamanio; j++) {
+            printf("%i, ", campoB[i][j]);
+        }
+        printf("]\n");
     }
  }
 
@@ -87,6 +99,11 @@
     fscanf(archivo,"%d",&tamanio);
  
    	int campoB[tamanio][tamanio];
+    for (int i = 0; i < tamanio; i++) {
+        for (int j = 0; j < tamanio; j++) {
+            campoB[i][j] = 0;
+        }
+    }
 
     fscanf(archivo,"%d",&objetivos);
 
@@ -97,6 +114,8 @@
         fscanf(archivo,"%d %d %d", &cord1, &cord2, &valor);
         campoB[cord1][cord2] = valor;
     }
+
+    imprimir_matriz(tamanio, campoB);
 
     fscanf(archivo,"%d",&numBombas);
 
