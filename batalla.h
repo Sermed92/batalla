@@ -1,14 +1,14 @@
-#ifdef batalla
+#ifndef batalla
 #define batalla
 
 // Estructura para la cola de bombas
-struct bomba {
+typedef struct _bomba {
         int coord1;
         int coord2;
         int potencia;
         int radio;
-        struct bomba *siguiente;
-};
+        struct _bomba *siguiente;
+} bomba;
 
 // Estructura para la respuesta de los procesos
 typedef struct _respuesta {
