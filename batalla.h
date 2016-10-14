@@ -34,4 +34,6 @@ void imprimir_bombas(bomba*);
 void imprimir_objetivos(objetivo*);
 void agregar_objetivo(objetivo**, int, int, int);
 
+void lanzar_bomba(objetivo**, objetivo**, bomba*);
+
 #endif

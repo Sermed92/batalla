@@ -38,7 +38,7 @@ void imprimir_bombas(bomba *bombas) {
     bomba *aux = bombas;
     while (aux != NULL)
     {
-        printf("bomba: %i,%i,%i,%i\n", aux ->coord1,aux->coord2,aux->potencia,aux->radio);
+        printf("bomba: %i,%i,p:%i,r:%i\n", aux ->coord1,aux->coord2,aux->potencia,aux->radio);
         aux = aux->siguiente;
     }
 }
@@ -79,5 +79,66 @@ void imprimir_objetivos(objetivo *objetivos) {
     {
         printf("objetivo: %i,%i,%i\n", aux ->coord1,aux->coord2,aux->resistencia);
         aux = aux->siguiente;
+    }
+}
+
+bomba *pop_bomba (bomba** lista_bomba) {
+    bomba* primera_bomba = *lista_bomba;
+    if ((*lista_bomba) -> siguiente != NULL) {
+        *lista_bomba = (*lista_bomba) -> siguiente;
+    }
+    primera_bomba -> siguiente = NULL;
+    return primera_bomba;
+}
+
+// Funcion para determinar si un bojetivo esta dentro del rango de accion de una bomba
+// retorna 1 si el objetivo esta en rango o 0 en caso contrario
+int esta_en_radio (objetivo *objetivo_actual, bomba *bomba_actual) {
+    if (bomba_actual -> coord1 - bomba_actual -> radio <= objetivo_actual -> coord1) {
+        if (objetivo_actual -> coord1 <= bomba_actual -> coord1 + bomba_actual -> radio) {
+            if (bomba_actual -> coord2 - bomba_actual -> radio <= objetivo_actual -> coord2) {
+                if (objetivo_actual -> coord1 <= bomba_actual -> coord1 + bomba_actual -> radio) {
+                    return 1;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+void procesar_impacto(objetivo **objetivo_actual, bomba *bomba_actual) {
+    if ((*objetivo_actual) -> resistencia < 0) {
+        (*objetivo_actual) -> resistencia += bomba_actual -> potencia;
+        if ((*objetivo_actual) -> resistencia > 0) {
+            (*objetivo_actual) -> resistencia = 0;
+        }
+    }
+
+    if ((*objetivo_actual) -> resistencia > 0) {
+        (*objetivo_actual) -> resistencia -= bomba_actual -> potencia;
+        if ((*objetivo_actual) -> resistencia < 0) {
+            (*objetivo_actual) -> resistencia = 0;
+        }
+    }
+}
+
+void lanzar_bomba(objetivo **objetivos_militares, objetivo **objetivos_civiles, bomba *bomba_actual) {
+    objetivo *temp_militar = *objetivos_militares;
+    printf("bomba (%i,%i)\n", bomba_actual -> coord1, bomba_actual-> coord2);
+    while (temp_militar != NULL) {
+        printf("Objetivo militar alcanzado %i,(%i,%i)\n", esta_en_radio(temp_militar,bomba_actual),temp_militar -> coord1, temp_militar -> coord2);
+        if (esta_en_radio(temp_militar, bomba_actual)) {
+            procesar_impacto(&temp_militar,bomba_actual);
+        }
+        temp_militar = temp_militar -> siguiente;
+    }
+
+    objetivo *temp_civil = *objetivos_civiles;
+    while (temp_civil != NULL) {
+        printf("Objetivo civil alcanzado %i,(%i,%i)\n", esta_en_radio(temp_civil,bomba_actual),temp_civil -> coord1, temp_civil -> coord2);
+        if (esta_en_radio(temp_civil, bomba_actual)) {
+            procesar_impacto(&temp_civil,bomba_actual);
+        }
+        temp_civil = temp_civil -> siguiente;
     }
 }

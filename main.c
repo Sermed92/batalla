@@ -90,7 +90,9 @@
 
     int i;
     
-    objetivo *lista_objetivos = NULL;
+    objetivo *objetivos_militares = NULL;
+    objetivo *objetivos_civiles = NULL;
+
 
     fscanf(archivo,"%d",&objetivos);
 
@@ -99,10 +101,17 @@
 
     for (i = 0; i<objetivos; i++){
         fscanf(archivo,"%d %d %d", &cord1, &cord2, &valor);
-        agregar_objetivo(&lista_objetivos, cord1,cord2,valor);
+        if (valor < 0){
+            agregar_objetivo(&objetivos_militares, cord1,cord2,valor);
+        } else {
+            agregar_objetivo(&objetivos_civiles, cord1,cord2,valor);
+        }
+        
     }
+    imprimir_objetivos(objetivos_civiles);
+    imprimir_objetivos(objetivos_militares);
+    
 
-    imprimir_objetivos(lista_objetivos);
 
     fscanf(archivo,"%d",&numBombas);
 
@@ -118,6 +127,15 @@
     imprimir_bombas(bombas);
 
     fclose(archivo);
+
+    bomba *temp = bombas;
+    while (temp != NULL) {
+        lanzar_bomba(&objetivos_militares, &objetivos_civiles, temp);
+        temp = temp -> siguiente;
+    }
+
+    imprimir_objetivos(objetivos_civiles);
+    imprimir_objetivos(objetivos_militares);
 
     if (hflag==1) {
         //Se trabajara con hilos
