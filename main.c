@@ -98,6 +98,7 @@
         }
     }
     
+    objetivo *lista_objetivos = NULL;
 
     fscanf(archivo,"%d",&objetivos);
 
@@ -106,23 +107,29 @@
 
     for (i = 0; i<objetivos; i++){
         fscanf(archivo,"%d %d %d", &cord1, &cord2, &valor);
-        campoB[cord1][cord2] = valor;
+        agregar_objetivo(&lista_objetivos, cord1,cord2,valor);
+        //campoB[cord1][cord2] = valor;
     }
+
+    imprimir_objetivos(lista_objetivos);
 
     fscanf(archivo,"%d",&numBombas);
 
-    int bombas[numBombas][4];
+    //int bombas[numBombas][4];
     int radio, potencia;
+    bomba *bombas = NULL;
 
     //Se guardan las bombas que serán usadas
 
     for (i = 0; i<numBombas; i++){
         fscanf(archivo,"%d %d %d %d", &cord1, &cord2, &radio, &potencia);
-        bombas[i][0] = cord1;
-        bombas[i][1] = cord2;
-        bombas[i][2] = radio;
-        bombas[i][3] = potencia;
+        agregar_bomba(&bombas,cord1, cord2, potencia, radio);
+       // bombas[i][0] = cord1;
+       // bombas[i][1] = cord2;
+       // bombas[i][2] = radio;
+       // bombas[i][3] = potencia;
     }
+    imprimir_bombas(bombas);
 
     fclose(archivo);
 

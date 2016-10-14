@@ -20,7 +20,18 @@ typedef struct _respuesta {
         int oc_destruidos;
 } respuesta;
 
-void imprimir_matriz(int, int);
+typedef struct _objetivo {
+        int coord1;
+        int coord2;
+        int resistencia;
+        struct _objetivo *siguiente;
+} objetivo;
 
+void imprimir_matriz(int, int);
+void agregar_bomba(bomba**, int, int, int, int);
+void imprimir_bombas(bomba*);
+
+void imprimir_objetivos(objetivo*);
+void agregar_objetivo(objetivo**, int, int, int);
 
 #endif
