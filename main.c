@@ -89,8 +89,11 @@
     fscanf(archivo,"%d",&tamanio);
  
    	int campoB[tamanio][tamanio];
-    for (int i = 0; i < tamanio; i++) {
-        for (int j = 0; j < tamanio; j++) {
+
+    int i,j;
+
+    for (i = 0; i < tamanio; i++) {
+        for (j = 0; j < tamanio; j++) {
             campoB[i][j] = 0;
         }
     }
@@ -99,7 +102,7 @@
     fscanf(archivo,"%d",&objetivos);
 
     // Se guardan los objetivos en la matriz
-    int i;
+    
 
     for (i = 0; i<objetivos; i++){
         fscanf(archivo,"%d %d %d", &cord1, &cord2, &valor);
