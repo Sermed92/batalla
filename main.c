@@ -1,7 +1,6 @@
 /*
  * Archivo: main.c
  * Autores:
- *          RECUERDA COLOCARTE
  *          Sergio Medina 09-11259
  *          Lucio Mederos 13-10856
  * Descripción:   
@@ -108,10 +107,12 @@
         }
         
     }
+    printf("Estado inicial:\n");
     imprimir_objetivos(objetivos_civiles);
     imprimir_objetivos(objetivos_militares);
-    
 
+    objetivo *objetivos_civiles_originales = clonar_objetivos(objetivos_civiles);
+    objetivo *objetivos_militares_originales = clonar_objetivos(objetivos_militares);
 
     fscanf(archivo,"%d",&numBombas);
 
@@ -124,7 +125,6 @@
         fscanf(archivo,"%d %d %d %d", &cord1, &cord2, &radio, &potencia);
         agregar_bomba(&bombas,cord1, cord2, potencia, radio);
     }
-    imprimir_bombas(bombas);
 
     fclose(archivo);
 
@@ -134,8 +134,18 @@
         temp = temp -> siguiente;
     }
 
+    printf("Estado final:\n");
     imprimir_objetivos(objetivos_civiles);
     imprimir_objetivos(objetivos_militares);
+
+    respuesta r_militar = comparar_objetivos(objetivos_militares_originales, objetivos_militares);
+    respuesta r_civil = comparar_objetivos(objetivos_civiles_originales, objetivos_civiles);
+
+    printf("Respuesta militar:\n");
+    imprimir_respuesta(r_militar);
+
+    printf("Respuesta civil:\n");
+    imprimir_respuesta(r_civil);
 
     if (hflag==1) {
         //Se trabajara con hilos

@@ -124,9 +124,9 @@ void procesar_impacto(objetivo **objetivo_actual, bomba *bomba_actual) {
 
 void lanzar_bomba(objetivo **objetivos_militares, objetivo **objetivos_civiles, bomba *bomba_actual) {
     objetivo *temp_militar = *objetivos_militares;
-    printf("bomba (%i,%i)\n", bomba_actual -> coord1, bomba_actual-> coord2);
+    //printf("bomba (%i,%i)\n", bomba_actual -> coord1, bomba_actual-> coord2);
     while (temp_militar != NULL) {
-        printf("Objetivo militar alcanzado %i,(%i,%i)\n", esta_en_radio(temp_militar,bomba_actual),temp_militar -> coord1, temp_militar -> coord2);
+        //printf("Objetivo militar alcanzado %i,(%i,%i)\n", esta_en_radio(temp_militar,bomba_actual),temp_militar -> coord1, temp_militar -> coord2);
         if (esta_en_radio(temp_militar, bomba_actual)) {
             procesar_impacto(&temp_militar,bomba_actual);
         }
@@ -135,10 +135,50 @@ void lanzar_bomba(objetivo **objetivos_militares, objetivo **objetivos_civiles, 
 
     objetivo *temp_civil = *objetivos_civiles;
     while (temp_civil != NULL) {
-        printf("Objetivo civil alcanzado %i,(%i,%i)\n", esta_en_radio(temp_civil,bomba_actual),temp_civil -> coord1, temp_civil -> coord2);
+        //printf("Objetivo civil alcanzado %i,(%i,%i)\n", esta_en_radio(temp_civil,bomba_actual),temp_civil -> coord1, temp_civil -> coord2);
         if (esta_en_radio(temp_civil, bomba_actual)) {
             procesar_impacto(&temp_civil,bomba_actual);
         }
         temp_civil = temp_civil -> siguiente;
     }
+}
+
+objetivo *clonar_objetivos(objetivo *objetivos) {
+    objetivo *nuevos_objetivos = NULL;
+    objetivo *temp = objetivos;
+    while (temp != NULL) {
+        agregar_objetivo(&nuevos_objetivos, temp -> coord1, temp -> coord2, temp -> resistencia);
+        temp = temp -> siguiente;
+    }
+    return nuevos_objetivos;
+}
+
+void imprimir_respuesta(respuesta r) {
+    printf("Respuesta:\nObjetivos intactos: %i\n", r.intactos);
+    printf("Objetivos parcialmente destruidos: %i\n", r.parcial);
+    printf("Objetivos totalmente destruidos: %i\n", r.destruidos);
+}
+
+respuesta comparar_objetivos(objetivo *estado_inicial, objetivo *estado_final) {
+    objetivo *temp1 = estado_inicial;
+    objetivo *temp2 = estado_final;
+    respuesta r;
+    r.intactos = 0;
+    r.parcial = 0;
+    r.destruidos = 0;
+    while (temp1 != NULL) {
+        if (temp2 -> resistencia == 0) {
+            r.destruidos += 1;
+        }
+        else if (temp1 -> resistencia == temp2 -> resistencia) {
+            r.intactos += 1;
+        }
+        else {
+            r.parcial += 1;
+        }
+        temp1 = temp1 -> siguiente;
+        temp2 = temp2 -> siguiente;
+    }
+
+    return r;
 }
