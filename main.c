@@ -12,7 +12,17 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <time.h>
+#include <pthread.h>
 #include "batalla.h"
+
+// Lista de objetivos como global para poder ser leida por los hilos
+objetivo *lista_objetivos;
+
+void* llamada_a_lanzar_bomba(void *arg) {
+    bomba* bomba_actual = (bomba*) arg;
+    lanzar_bomba(&lista_objetivos, bomba_actual);
+    return NULL;
+}
 
 // Finaliza el programa si no posee la cantidad de argumentos necesarios, despues de indicar la forma correcta
  void numeroArgumentos(int cantidad){
@@ -99,7 +109,7 @@
 
     int i;
     
-    objetivo *lista_objetivos = NULL;
+    lista_objetivos = NULL;
 
     fscanf(archivo,"%d",&objetivos);
 
@@ -129,28 +139,41 @@
 
     fclose(archivo);
 
-    /*
-        SI NO SE TOMA EN CUENTA EL TIEMPO DE LECTURA DEL ARCHIVO
-        DEJAR ESTA LINEA
-    */
-
     tiempo_inicio = clock();
 
+    bomba *temp = bombas;
+    /**
+    int bombas_por_hijo;
+
+    if (nvalue != 0 && nvalue >= numBombas){
+        nvalue = numBombas;
+
+    } else if (nvalue != 0){
+        bombas_por_hijo = numBombas / nvalue;
+    }
+    printf("Numero de bombas que debe tener cada hijo: %i\n", bombas_por_hijo );
+    */
     if (hflag==1) {
         //Se trabajara con hilos
-        printf("Soy hilos\n");
+        printf("Soy hilos");
         printf("N=%i\n",nvalue);
+
+        pthread_t hilo;
+        while (temp != NULL) {
+            pthread_create(&hilo, NULL, llamada_a_lanzar_bomba, temp);
+            pthread_join(hilo,NULL);
+            temp = temp -> siguiente;
+        }        
     } else {
         // p opcion por defecto, no entrara si se da el argumento de hilo
         //Se trabajara con procesos
-        printf("Soy procesos\n");
+        printf("Soy procesos");
         printf("N=%i\n",nvalue);
-    }
 
-    bomba *temp = bombas;
-    while (temp != NULL) {
-        lanzar_bomba(&lista_objetivos, temp);
-        temp = temp -> siguiente;
+        while (temp != NULL) {
+            llamada_a_lanzar_bomba(temp);
+            temp = temp -> siguiente;
+        }        
     }
 
     printf("Estado final:\n");
@@ -160,7 +183,6 @@
 
     imprimir_respuesta(r);
 
-
     // Se toma el tiempo final y se calcula el tiempo usado
     tiempo_final = clock();
     tiempo_usado = ((double) tiempo_final - tiempo_inicio) / CLOCKS_PER_SEC;
@@ -168,4 +190,4 @@
 
     return 0;
 
- }
+}

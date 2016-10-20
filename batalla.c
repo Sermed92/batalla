@@ -154,8 +154,8 @@ objetivo *clonar_objetivos(objetivo *objetivos) {
 // Procedimiento para mostrar una respuesta
 void imprimir_respuesta(respuesta r) {
     printf("Respuesta:\nObjetivos militares intactos: %i\n", r.intactosM);
-    printf("Objetivos parcialmente militares destruidos: %i\n", r.parcialM);
-    printf("Objetivos totalmente militares destruidos: %i\n", r.destruidosM);
+    printf("Objetivos militares parcialmente destruidos: %i\n", r.parcialM);
+    printf("Objetivos militares totalmente destruidos: %i\n", r.destruidosM);
     printf("Objetivos civiles intactos: %i\n", r.intactosC);
     printf("Objetivos civiles parcialmente destruidos: %i\n", r.parcialC);
     printf("Objetivos civiles totalmente destruidos: %i\n", r.destruidosC);

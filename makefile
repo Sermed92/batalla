@@ -1,7 +1,7 @@
 all: batalla clean
 
 batalla: main.o batalla.o batalla.h
-	gcc -std=c99 -o batalla main.o batalla.o
+	gcc -std=c99 -pthread -o batalla main.o batalla.o
 
 main.o: main.c batalla.h
 	gcc -Wall -Wextra -c main.c
