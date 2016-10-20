@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "batalla.h"
 
-
+// Funcion para crear un nuevo nodo de tipo bomba
 bomba *nueva_bomba(int coord1, int coord2, int potencia, int radio) {
     bomba *bomba_nueva = (bomba*) malloc(sizeof(bomba));
      
@@ -18,9 +18,9 @@ bomba *nueva_bomba(int coord1, int coord2, int potencia, int radio) {
     bomba_nueva -> siguiente = NULL;
 
     return bomba_nueva;
-
  }
 
+// Procedimiento para agregar un nuevo nodo tipo bomba a una lista de bombas
 void agregar_bomba (bomba** lista_bombas, int coord1, int coord2, int potencia, int radio) {
 
     if (lista_bombas == NULL) {
@@ -34,6 +34,7 @@ void agregar_bomba (bomba** lista_bombas, int coord1, int coord2, int potencia, 
 
 }
 
+// Procedimiento para imprimir los nodos de una lista de bombas
 void imprimir_bombas(bomba *bombas) {
     bomba *aux = bombas;
     while (aux != NULL)
@@ -43,6 +44,7 @@ void imprimir_bombas(bomba *bombas) {
     }
 }
 
+// Funcion para crear un nuevo nodo de tipo objetivo
 objetivo *nuevo_objetivo(int coord1, int coord2, int resistencia) {
     objetivo *objetivo_nuevo = (objetivo*) malloc(sizeof(objetivo));
     
@@ -57,10 +59,10 @@ objetivo *nuevo_objetivo(int coord1, int coord2, int resistencia) {
     objetivo_nuevo -> siguiente = NULL;
 
     return objetivo_nuevo;
-
  }
 
- void agregar_objetivo (objetivo** lista_objetivos, int coord1, int coord2, int resistencia) {
+// Procedimiento para agregar un nuevo nodo tipo objetivo a una lista de objetivos
+void agregar_objetivo (objetivo** lista_objetivos, int coord1, int coord2, int resistencia) {
 
     if (lista_objetivos == NULL) {
         *lista_objetivos = nuevo_objetivo(coord1, coord2, resistencia);
@@ -70,9 +72,9 @@ objetivo *nuevo_objetivo(int coord1, int coord2, int resistencia) {
         objetivo_nuevo -> siguiente = *lista_objetivos;
         *lista_objetivos = objetivo_nuevo;
     }
-
 }
 
+// Procedimiento para imprimir los nodos de una lista de objetivos
 void imprimir_objetivos(objetivo *objetivos) {
     objetivo *aux = objetivos;
     while (aux != NULL)
@@ -82,6 +84,7 @@ void imprimir_objetivos(objetivo *objetivos) {
     }
 }
 
+// Procedimiento para tomar el primer nodo de una lista de tipo bomba
 bomba *pop_bomba (bomba** lista_bomba) {
     bomba* primera_bomba = *lista_bomba;
     if ((*lista_bomba) -> siguiente != NULL) {
@@ -106,6 +109,7 @@ int esta_en_radio (objetivo *objetivo_actual, bomba *bomba_actual) {
     return 0;
 }
 
+// Procedimiento para procesar un impacto sobre un objetivos
 void procesar_impacto(objetivo **objetivo_actual, bomba *bomba_actual) {
     if ((*objetivo_actual) -> resistencia < 0) {
         (*objetivo_actual) -> resistencia += bomba_actual -> potencia;
@@ -122,62 +126,78 @@ void procesar_impacto(objetivo **objetivo_actual, bomba *bomba_actual) {
     }
 }
 
-void lanzar_bomba(objetivo **objetivos_militares, objetivo **objetivos_civiles, bomba *bomba_actual) {
-    objetivo *temp_militar = *objetivos_militares;
-    //printf("bomba (%i,%i)\n", bomba_actual -> coord1, bomba_actual-> coord2);
-    while (temp_militar != NULL) {
-        //printf("Objetivo militar alcanzado %i,(%i,%i)\n", esta_en_radio(temp_militar,bomba_actual),temp_militar -> coord1, temp_militar -> coord2);
-        if (esta_en_radio(temp_militar, bomba_actual)) {
-            procesar_impacto(&temp_militar,bomba_actual);
+// Procedimiento para simular un ataque con bomba sobre los objetivos
+void lanzar_bomba(objetivo **objetivos, bomba *bomba_actual) {
+    objetivo *temp = *objetivos;
+    while (temp != NULL) {
+        if (esta_en_radio(temp, bomba_actual)) {
+            procesar_impacto(&temp,bomba_actual);
         }
-        temp_militar = temp_militar -> siguiente;
-    }
-
-    objetivo *temp_civil = *objetivos_civiles;
-    while (temp_civil != NULL) {
-        //printf("Objetivo civil alcanzado %i,(%i,%i)\n", esta_en_radio(temp_civil,bomba_actual),temp_civil -> coord1, temp_civil -> coord2);
-        if (esta_en_radio(temp_civil, bomba_actual)) {
-            procesar_impacto(&temp_civil,bomba_actual);
-        }
-        temp_civil = temp_civil -> siguiente;
+        temp = temp -> siguiente;
     }
 }
 
+// Funcion para crear una copiar de una lista de objetivos
 objetivo *clonar_objetivos(objetivo *objetivos) {
-    objetivo *nuevos_objetivos = NULL;
     objetivo *temp = objetivos;
+    objetivo *nuevos_objetivos = nuevo_objetivo(temp-> coord1, temp -> coord2, temp -> resistencia);
+    objetivo *tempN = nuevos_objetivos;
+    temp = temp -> siguiente;
     while (temp != NULL) {
-        agregar_objetivo(&nuevos_objetivos, temp -> coord1, temp -> coord2, temp -> resistencia);
+        tempN -> siguiente = nuevo_objetivo(temp-> coord1, temp -> coord2, temp -> resistencia);
         temp = temp -> siguiente;
+        tempN = tempN -> siguiente;
     }
     return nuevos_objetivos;
 }
 
+// Procedimiento para mostrar una respuesta
 void imprimir_respuesta(respuesta r) {
-    printf("Respuesta:\nObjetivos intactos: %i\n", r.intactos);
-    printf("Objetivos parcialmente destruidos: %i\n", r.parcial);
-    printf("Objetivos totalmente destruidos: %i\n", r.destruidos);
+    printf("Respuesta:\nObjetivos militares intactos: %i\n", r.intactosM);
+    printf("Objetivos parcialmente militares destruidos: %i\n", r.parcialM);
+    printf("Objetivos totalmente militares destruidos: %i\n", r.destruidosM);
+    printf("Objetivos civiles intactos: %i\n", r.intactosC);
+    printf("Objetivos civiles parcialmente destruidos: %i\n", r.parcialC);
+    printf("Objetivos civiles totalmente destruidos: %i\n", r.destruidosC);
 }
 
+// Funcion para comparar los objetivos con su estado inicial y dar una respuesta
 respuesta comparar_objetivos(objetivo *estado_inicial, objetivo *estado_final) {
-    objetivo *temp1 = estado_inicial;
-    objetivo *temp2 = estado_final;
+    objetivo *tempI = estado_inicial;
+    objetivo *tempF = estado_final;
     respuesta r;
-    r.intactos = 0;
-    r.parcial = 0;
-    r.destruidos = 0;
-    while (temp1 != NULL) {
-        if (temp2 -> resistencia == 0) {
-            r.destruidos += 1;
+    r.intactosM = 0;
+    r.parcialM = 0;
+    r.destruidosM = 0;
+    r.intactosC = 0;
+    r.parcialC = 0;
+    r.destruidosC = 0;    
+
+    while (tempI != NULL) {
+        if (tempI -> resistencia < 0) {
+            if (tempF -> resistencia == 0) {
+                r.destruidosM += 1;
+            }
+            else if (tempI -> resistencia == tempF -> resistencia) {
+                r.intactosM += 1;
+            }
+            else {
+                r.parcialM += 1;
+            }
         }
-        else if (temp1 -> resistencia == temp2 -> resistencia) {
-            r.intactos += 1;
+        else if (tempI -> resistencia > 0) {
+            if (tempF -> resistencia == 0) {
+                r.destruidosC += 1;
+            }
+            else if (tempI -> resistencia == tempF -> resistencia) {
+                r.intactosC += 1;
+            }
+            else {
+                r.parcialC += 1;
+            }
         }
-        else {
-            r.parcial += 1;
-        }
-        temp1 = temp1 -> siguiente;
-        temp2 = temp2 -> siguiente;
+        tempI = tempI -> siguiente;
+        tempF = tempF -> siguiente;
     }
 
     return r;

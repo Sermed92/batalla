@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <time.h>
 #include "batalla.h"
 
 // Finaliza el programa si no posee la cantidad de argumentos necesarios, despues de indicar la forma correcta
@@ -31,6 +32,15 @@
     int pflag = 0;
     int nvalue = 0;
     int n;
+
+    clock_t tiempo_inicio, tiempo_final;
+    double tiempo_usado;
+
+    /*
+        HAY QUE DECICIR SI SE TOMARA EL TIEMPO DE LECTURA DEL
+        ARCHIVO O NO. SI SE TOMA EN CUANTA COLOCAR AQUI:
+        tiempo_inicio = clock();
+    */
 
     opterr = 0;
 
@@ -89,9 +99,7 @@
 
     int i;
     
-    objetivo *objetivos_militares = NULL;
-    objetivo *objetivos_civiles = NULL;
-
+    objetivo *lista_objetivos = NULL;
 
     fscanf(archivo,"%d",&objetivos);
 
@@ -100,19 +108,12 @@
 
     for (i = 0; i<objetivos; i++){
         fscanf(archivo,"%d %d %d", &cord1, &cord2, &valor);
-        if (valor < 0){
-            agregar_objetivo(&objetivos_militares, cord1,cord2,valor);
-        } else {
-            agregar_objetivo(&objetivos_civiles, cord1,cord2,valor);
-        }
-        
+        agregar_objetivo(&lista_objetivos, cord1,cord2,valor);        
     }
     printf("Estado inicial:\n");
-    imprimir_objetivos(objetivos_civiles);
-    imprimir_objetivos(objetivos_militares);
+    imprimir_objetivos(lista_objetivos);
 
-    objetivo *objetivos_civiles_originales = clonar_objetivos(objetivos_civiles);
-    objetivo *objetivos_militares_originales = clonar_objetivos(objetivos_militares);
+    objetivo *objetivos_originales = clonar_objetivos(lista_objetivos);
 
     fscanf(archivo,"%d",&numBombas);
 
@@ -128,24 +129,12 @@
 
     fclose(archivo);
 
-    bomba *temp = bombas;
-    while (temp != NULL) {
-        lanzar_bomba(&objetivos_militares, &objetivos_civiles, temp);
-        temp = temp -> siguiente;
-    }
+    /*
+        SI NO SE TOMA EN CUENTA EL TIEMPO DE LECTURA DEL ARCHIVO
+        DEJAR ESTA LINEA
+    */
 
-    printf("Estado final:\n");
-    imprimir_objetivos(objetivos_civiles);
-    imprimir_objetivos(objetivos_militares);
-
-    respuesta r_militar = comparar_objetivos(objetivos_militares_originales, objetivos_militares);
-    respuesta r_civil = comparar_objetivos(objetivos_civiles_originales, objetivos_civiles);
-
-    printf("Respuesta militar:\n");
-    imprimir_respuesta(r_militar);
-
-    printf("Respuesta civil:\n");
-    imprimir_respuesta(r_civil);
+    tiempo_inicio = clock();
 
     if (hflag==1) {
         //Se trabajara con hilos
@@ -157,6 +146,25 @@
         printf("Soy procesos\n");
         printf("N=%i\n",nvalue);
     }
+
+    bomba *temp = bombas;
+    while (temp != NULL) {
+        lanzar_bomba(&lista_objetivos, temp);
+        temp = temp -> siguiente;
+    }
+
+    printf("Estado final:\n");
+    imprimir_objetivos(lista_objetivos);
+
+    respuesta r = comparar_objetivos(objetivos_originales, lista_objetivos);
+
+    imprimir_respuesta(r);
+
+
+    // Se toma el tiempo final y se calcula el tiempo usado
+    tiempo_final = clock();
+    tiempo_usado = ((double) tiempo_final - tiempo_inicio) / CLOCKS_PER_SEC;
+    printf("Tiempo usado: %f\n", tiempo_usado);
 
     return 0;
 

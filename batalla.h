@@ -12,9 +12,12 @@ typedef struct _bomba {
 
 // Estructura para la respuesta de los procesos
 typedef struct _respuesta {
-        int intactos;
-        int parcial;
-        int destruidos;
+        int intactosM;
+        int parcialM;
+        int destruidosM;
+        int intactosC;
+        int parcialC;
+        int destruidosC;        
 } respuesta;
 
 typedef struct _objetivo {
@@ -31,7 +34,7 @@ void imprimir_bombas(bomba*);
 void imprimir_objetivos(objetivo*);
 void agregar_objetivo(objetivo**, int, int, int);
 
-void lanzar_bomba(objetivo**, objetivo**, bomba*);
+void lanzar_bomba(objetivo**, bomba*);
 
 objetivo *clonar_objetivos(objetivo*);
 
