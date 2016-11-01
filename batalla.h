@@ -34,7 +34,7 @@ void imprimir_bombas(bomba*);
 void imprimir_objetivos(objetivo*);
 void agregar_objetivo(objetivo**, int, int, int);
 
-void lanzar_bomba(objetivo**, bomba*);
+void lanzar_lista_bombas(objetivo**, bomba*);
 
 objetivo *clonar_objetivos(objetivo*);
 

@@ -6,7 +6,7 @@
 bomba *nueva_bomba(int coord1, int coord2, int potencia, int radio) {
     bomba *bomba_nueva = (bomba*) malloc(sizeof(bomba));
      
-    if(bomba_nueva == NULL){
+    if (bomba_nueva == NULL){
         printf("ERROR: Reserva de memoria para nueva bomba");
 		exit(0);	
 	}
@@ -85,13 +85,15 @@ void imprimir_objetivos(objetivo *objetivos) {
 }
 
 // Procedimiento para tomar el primer nodo de una lista de tipo bomba
-bomba *pop_bomba (bomba** lista_bomba) {
-    bomba* primera_bomba = *lista_bomba;
-    if ((*lista_bomba) -> siguiente != NULL) {
-        *lista_bomba = (*lista_bomba) -> siguiente;
+bomba *pop_bomba (bomba** lista_bombas) {
+    if (*lista_bombas == NULL) {
+        return NULL;
     }
-    primera_bomba -> siguiente = NULL;
-    return primera_bomba;
+    else {
+        bomba *primera_bomba = *lista_bombas;
+        *lista_bombas = (*lista_bombas) -> siguiente;
+        return primera_bomba;
+    }
 }
 
 // Funcion para determinar si un bojetivo esta dentro del rango de accion de una bomba
@@ -134,6 +136,14 @@ void lanzar_bomba(objetivo **objetivos, bomba *bomba_actual) {
             procesar_impacto(&temp,bomba_actual);
         }
         temp = temp -> siguiente;
+    }
+}
+
+void lanzar_lista_bombas(objetivo **objetivos, bomba *bombas_actuales) {
+    bomba *bomba_actual = bombas_actuales;
+    while (bomba_actual != NULL) {
+        lanzar_bomba(objetivos, bomba_actual);
+        bomba_actual = bomba_actual -> siguiente;
     }
 }
 

@@ -20,7 +20,7 @@ objetivo *lista_objetivos;
 
 void* llamada_a_lanzar_bomba(void *arg) {
     bomba* bomba_actual = (bomba*) arg;
-    lanzar_bomba(&lista_objetivos, bomba_actual);
+    lanzar_lista_bombas(&lista_objetivos, bomba_actual);
     return NULL;
 }
 
@@ -45,12 +45,6 @@ void* llamada_a_lanzar_bomba(void *arg) {
 
     clock_t tiempo_inicio, tiempo_final;
     double tiempo_usado;
-
-    /*
-        HAY QUE DECICIR SI SE TOMARA EL TIEMPO DE LECTURA DEL
-        ARCHIVO O NO. SI SE TOMA EN CUANTA COLOCAR AQUI:
-        tiempo_inicio = clock();
-    */
 
     opterr = 0;
 
@@ -113,9 +107,6 @@ void* llamada_a_lanzar_bomba(void *arg) {
 
     fscanf(archivo,"%d",&objetivos);
 
-    // Se guardan los objetivos en la matriz
-    
-
     for (i = 0; i<objetivos; i++){
         fscanf(archivo,"%d %d %d", &cord1, &cord2, &valor);
         agregar_objetivo(&lista_objetivos, cord1,cord2,valor);        
@@ -138,32 +129,55 @@ void* llamada_a_lanzar_bomba(void *arg) {
     }
 
     fclose(archivo);
+    
+    if (nvalue != 0 && nvalue >= numBombas){
+        nvalue = numBombas;
+    } else if (nvalue == 0) {
+        nvalue = 1;
+    }
+    bomba *temp = bombas;
+    
+    // Repartir bombas en un arreglo
+    int cont = 0;
+    bomba* arreglo_bombas [nvalue];
+    while (cont < nvalue) {
+        arreglo_bombas[cont] = NULL;
+        cont++;
+    }
+    cont = 0;
+
+    bomba *bomba_actual;
+    while (bombas != NULL) {
+        bomba_actual = bombas;
+        bombas = bombas -> siguiente;
+        bomba_actual -> siguiente = arreglo_bombas[cont%nvalue];
+        arreglo_bombas[cont%nvalue] = bomba_actual;
+        
+        
+        cont++;
+    }
+    // Imprimir arreglo de bombas
+    cont = 0;
+    for (cont = 0; cont < nvalue; cont ++){
+        printf("%d\n", cont);
+        imprimir_bombas(arreglo_bombas[cont]);
+    }
+    //
 
     tiempo_inicio = clock();
 
-    bomba *temp = bombas;
-    /**
-    int bombas_por_hijo;
-
-    if (nvalue != 0 && nvalue >= numBombas){
-        nvalue = numBombas;
-
-    } else if (nvalue != 0){
-        bombas_por_hijo = numBombas / nvalue;
-    }
-    printf("Numero de bombas que debe tener cada hijo: %i\n", bombas_por_hijo );
-    */
     if (hflag==1) {
         //Se trabajara con hilos
         printf("Soy hilos");
-        printf("N=%i\n",nvalue);
+        printf("N = %i\n",nvalue);
 
-        pthread_t hilo;
-        while (temp != NULL) {
-            pthread_create(&hilo, NULL, llamada_a_lanzar_bomba, temp);
-            pthread_join(hilo,NULL);
-            temp = temp -> siguiente;
-        }        
+        pthread_t arreglo_hilos[nvalue];
+        for (cont = 0; cont < nvalue; cont++) {
+            pthread_create(&arreglo_hilos[cont], NULL, llamada_a_lanzar_bomba, arreglo_bombas[cont]);
+        }
+        for (cont = 0; cont < nvalue; cont++) {
+            pthread_join(arreglo_hilos[cont],NULL);
+        }
     } else {
         // p opcion por defecto, no entrara si se da el argumento de hilo
         //Se trabajara con procesos
