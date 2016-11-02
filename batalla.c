@@ -139,6 +139,7 @@ void lanzar_bomba(objetivo **objetivos, bomba *bomba_actual) {
     }
 }
 
+// Funcion para lanzar una lista de bombas
 void lanzar_lista_bombas(objetivo **objetivos, bomba *bombas_actuales) {
     bomba *bomba_actual = bombas_actuales;
     while (bomba_actual != NULL) {

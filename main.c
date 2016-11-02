@@ -153,7 +153,6 @@ void* llamada_a_lanzar_bomba(void *arg) {
         bomba_actual -> siguiente = arreglo_bombas[cont%nvalue];
         arreglo_bombas[cont%nvalue] = bomba_actual;
         
-        
         cont++;
     }
     // Imprimir arreglo de bombas
@@ -184,10 +183,41 @@ void* llamada_a_lanzar_bomba(void *arg) {
         printf("Soy procesos");
         printf("N=%i\n",nvalue);
 
-        while (temp != NULL) {
-            llamada_a_lanzar_bomba(temp);
-            temp = temp -> siguiente;
-        }        
+        // while (temp != NULL) {
+        //     llamada_a_lanzar_bomba(temp);
+        //     temp = temp -> siguiente;
+        // }
+        if (nvalue == 1) {
+            // Solo trabajar sobre proceso padre
+            lanzar_lista_bombas(&lista_objetivos, arreglo_bombas[0]);
+        }
+        else {
+            pid_t pid_padre = getpid();
+            pid_t arreglo_procesos[nvalue];
+            for (cont = 0; cont < nvalue; cont++) {
+                if (getpid() == pid_padre) {
+                    arreglo_procesos[cont] = fork();
+                }
+                else {
+                    break;
+                }
+            }
+
+            /// Poner a trabajar a los hijos
+            if (getpid() != pid_padre) {
+                lanzar_lista_bombas(&lista_objetivos, arreglo_bombas[cont]);
+                printf("Termino hijo%d\n", getpid());
+                exit(1);
+            }
+
+            if (getpid() == pid_padre ) {
+                for (cont = 0; cont < nvalue; cont++) {
+            wait(&arreglo_procesos[cont]);
+        }
+        printf("Termino padre\n");
+    }
+        }
+
     }
 
     printf("Estado final:\n");
