@@ -13,6 +13,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <pthread.h>
+#include <sys/wait.h>
 #include "batalla.h"
 
 // Lista de objetivos como global para poder ser leida por los hilos
@@ -123,7 +124,7 @@ void* llamada_a_lanzar_bomba(void *arg) {
 
     //Se guardan las bombas que serán usadas
 
-    for (i = 0; i<numBombas; i++){
+    for (i = 0; i < numBombas; i++){
         fscanf(archivo,"%d %d %d %d", &cord1, &cord2, &radio, &potencia);
         agregar_bomba(&bombas,cord1, cord2, potencia, radio);
     }
@@ -135,7 +136,7 @@ void* llamada_a_lanzar_bomba(void *arg) {
     } else if (nvalue == 0) {
         nvalue = 1;
     }
-    bomba *temp = bombas;
+    //bomba *temp = bombas;
     
     // Repartir bombas en un arreglo
     int cont = 0;
@@ -155,20 +156,20 @@ void* llamada_a_lanzar_bomba(void *arg) {
         
         cont++;
     }
-    // Imprimir arreglo de bombas
+    /*/ Imprimir arreglo de bombas
     cont = 0;
     for (cont = 0; cont < nvalue; cont ++){
-        printf("%d\n", cont);
+        printf("Bombas posicion: %d\n", cont);
         imprimir_bombas(arreglo_bombas[cont]);
     }
-    //
+    /*/
 
     tiempo_inicio = clock();
 
     if (hflag==1) {
         //Se trabajara con hilos
         printf("Soy hilos");
-        printf("N = %i\n",nvalue);
+        printf(" N = %i\n",nvalue);
 
         pthread_t arreglo_hilos[nvalue];
         for (cont = 0; cont < nvalue; cont++) {
@@ -181,7 +182,7 @@ void* llamada_a_lanzar_bomba(void *arg) {
         // p opcion por defecto, no entrara si se da el argumento de hilo
         //Se trabajara con procesos
         printf("Soy procesos");
-        printf("N=%i\n",nvalue);
+        printf(" N= %i\n",nvalue);
 
         // while (temp != NULL) {
         //     llamada_a_lanzar_bomba(temp);
@@ -194,28 +195,35 @@ void* llamada_a_lanzar_bomba(void *arg) {
         else {
             pid_t pid_padre = getpid();
             pid_t arreglo_procesos[nvalue];
+            printf("Principal: %d\n", pid_padre);
+            
             for (cont = 0; cont < nvalue; cont++) {
                 if (getpid() == pid_padre) {
                     arreglo_procesos[cont] = fork();
                 }
                 else {
+                    
                     break;
                 }
             }
 
             /// Poner a trabajar a los hijos
             if (getpid() != pid_padre) {
+                cont--;
+                printf("Activo proceso %d id: %d padre: %d\n", cont, getpid(), getppid());
                 lanzar_lista_bombas(&lista_objetivos, arreglo_bombas[cont]);
-                printf("Termino hijo%d\n", getpid());
+                printf("Termino proceso %d\n", getpid());
+                // Enviar resultado a padre
                 exit(1);
-            }
+            }   
 
             if (getpid() == pid_padre ) {
                 for (cont = 0; cont < nvalue; cont++) {
-            wait(&arreglo_procesos[cont]);
-        }
-        printf("Termino padre\n");
-    }
+                    printf("Espero proceso %d id: %d en %d\n", cont, arreglo_procesos[cont], getpid());
+                    wait(&arreglo_procesos[cont]);
+                }
+            }
+            printf("Termino padre\n");
         }
 
     }
