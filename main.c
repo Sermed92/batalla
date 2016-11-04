@@ -6,14 +6,6 @@
  * Descripción:   
  */
 
-/* Librerias */
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <ctype.h>
-#include <time.h>
-#include <pthread.h>
-#include <sys/wait.h>
 #include "batalla.h"
 
 // Lista de objetivos como global para poder ser leida por los hilos
@@ -195,6 +187,22 @@ void* llamada_a_lanzar_bomba(void *arg) {
         else {
             pid_t pid_padre = getpid();
             pid_t arreglo_procesos[nvalue];
+            //int arreglo_pipes[nvalue][2];
+            //sem_t arreglo_semaforos[nvalue];
+            int llave = 99999;
+            int arreglo_semaforos_id = shmget(llave, sizeof(sem_t), IPC_CREAT | 0775);
+            if (arreglo_semaforos_id == -1) {
+                printf("Error en la alocacion de memoria para semaforo\n");
+                exit(1);
+            }
+            // Se crea un semaforo en memoria compartida para evitar el problema de seccion critica
+            sem_t* semaforo_seccion_critica = (sem_t*) shmat(arreglo_semaforos_id, NULL, 0);
+            if (semaforo_seccion_critica == (void*)-1) {
+                printf("Error al acoplar memoria compartida de semaforo\n");
+                exit(1);
+            }
+            sem_init(&semaforo_seccion_critica[0], 1, 1);
+
             printf("Principal: %d\n", pid_padre);
             
             for (cont = 0; cont < nvalue; cont++) {
@@ -202,7 +210,6 @@ void* llamada_a_lanzar_bomba(void *arg) {
                     arreglo_procesos[cont] = fork();
                 }
                 else {
-                    
                     break;
                 }
             }
@@ -211,18 +218,19 @@ void* llamada_a_lanzar_bomba(void *arg) {
             if (getpid() != pid_padre) {
                 cont--;
                 printf("Activo proceso %d id: %d padre: %d\n", cont, getpid(), getppid());
-                lanzar_lista_bombas(&lista_objetivos, arreglo_bombas[cont]);
+                lanzar_lista_bombas_proceso(&lista_objetivos, arreglo_bombas[cont], semaforo_seccion_critica[0]);
                 printf("Termino proceso %d\n", getpid());
-                // Enviar resultado a padre
+                printf("Estado final en %d\n", getpid());
+                imprimir_objetivos(lista_objetivos);
                 exit(1);
-            }   
-
-            if (getpid() == pid_padre ) {
+            } else {
+                // Se espera en el proceso principal a que terminen todos los hijos
                 for (cont = 0; cont < nvalue; cont++) {
-                    printf("Espero proceso %d id: %d en %d\n", cont, arreglo_procesos[cont], getpid());
-                    wait(&arreglo_procesos[cont]);
+                    wait(&arreglo_procesos[cont]);\
                 }
             }
+
+            printf("Terminaron hijos\n");
             printf("Termino padre\n");
         }
 

@@ -1,6 +1,18 @@
 #ifndef batalla
 #define batalla
 
+/* Librerias */
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <ctype.h>
+#include <time.h>
+#include <pthread.h>
+#include <sys/shm.h>
+#include <semaphore.h>
+#include <sys/wait.h>
+#include "batalla.h"
+
 // Estructura para la cola de bombas
 typedef struct _bomba {
         int coord1;
@@ -35,6 +47,7 @@ void imprimir_objetivos(objetivo*);
 void agregar_objetivo(objetivo**, int, int, int);
 
 void lanzar_lista_bombas(objetivo**, bomba*);
+void lanzar_lista_bombas_proceso(objetivo **, bomba*, sem_t);
 
 objetivo *clonar_objetivos(objetivo*);
 

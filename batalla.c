@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "batalla.h"
 
 // Funcion para crear un nuevo nodo de tipo bomba
@@ -130,12 +128,12 @@ void procesar_impacto(objetivo **objetivo_actual, bomba *bomba_actual) {
 
 // Procedimiento para simular un ataque con bomba sobre los objetivos
 void lanzar_bomba(objetivo **objetivos, bomba *bomba_actual) {
-    objetivo *temp = *objetivos;
-    while (temp != NULL) {
-        if (esta_en_radio(temp, bomba_actual)) {
-            procesar_impacto(&temp,bomba_actual);
+    objetivo *objetivo_actual = *objetivos;
+    while (objetivo_actual != NULL) {
+        if (esta_en_radio(objetivo_actual, bomba_actual)) {
+            procesar_impacto(&objetivo_actual,bomba_actual);
         }
-        temp = temp -> siguiente;
+        objetivo_actual = objetivo_actual -> siguiente;
     }
 }
 
@@ -144,6 +142,29 @@ void lanzar_lista_bombas(objetivo **objetivos, bomba *bombas_actuales) {
     bomba *bomba_actual = bombas_actuales;
     while (bomba_actual != NULL) {
         lanzar_bomba(objetivos, bomba_actual);
+        bomba_actual = bomba_actual -> siguiente;
+    }
+}
+
+void lanzar_bomba_proceso(objetivo **objetivos, bomba *bomba_actual, sem_t semaforo) {
+    objetivo *objetivo_actual = *objetivos;
+    while (objetivo_actual != NULL) {
+        if (esta_en_radio(objetivo_actual, bomba_actual)) {
+            printf("Espero semaforo de seccion critica en %d\n", getpid());
+            sem_wait(&semaforo);
+            printf("Entro a seccion critica en %d\n", getpid());
+            procesar_impacto(&objetivo_actual, bomba_actual);
+            printf("Sali de seccion critica en %d\n", getpid());
+            sem_post(&semaforo);
+        }
+        objetivo_actual = objetivo_actual -> siguiente;
+    }
+}
+
+void lanzar_lista_bombas_proceso(objetivo **objetivos, bomba *bombas_actuales, sem_t semaforo) {
+    bomba *bomba_actual = bombas_actuales;
+    while (bomba_actual != NULL) {
+        lanzar_bomba_proceso(objetivos, bomba_actual, semaforo);
         bomba_actual = bomba_actual -> siguiente;
     }
 }
