@@ -109,8 +109,8 @@ void* llamada_a_lanzar_bomba(void *arg) {
         fscanf(archivo,"%d %d %d", &cord1, &cord2, &valor);
 
         // Las coordenadas deben existir en el mapa
-        if (cord1 > 0 && cord1 <tamanio){
-            if (cord2 > 0 && cord2 < tamanio){
+        if (cord1 >= 0 && cord1 <tamanio){
+            if (cord2 >= 0 && cord2 < tamanio){
                 agregar_objetivo(&lista_objetivos, cord1,cord2,valor);                        
             }
         }
@@ -128,8 +128,8 @@ void* llamada_a_lanzar_bomba(void *arg) {
         fscanf(archivo,"%d %d %d %d", &cord1, &cord2, &radio, &potencia);
 
         // Las coordenadas deben existir en el mapa
-        if (cord1 > 0 && cord1 <tamanio){
-            if (cord2 > 0 && cord2 < tamanio){        
+        if (cord1 >= 0 && cord1 <tamanio){
+            if (cord2 >= 0 && cord2 < tamanio){        
                 agregar_bomba(&bombas,cord1, cord2, potencia, radio);
             }
         }
