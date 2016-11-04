@@ -19,14 +19,14 @@ void* llamada_a_lanzar_bomba(void *arg) {
 
 // Finaliza el programa si no posee la cantidad de argumentos necesarios
 // Indica la forma correcta
- void numeroArgumentos(int cantidad){
+void numeroArgumentos(int cantidad){
     if ((cantidad < 2) || (cantidad > 5)){
         printf("Violacion de parametros, pruebe: \n");
         printf("./batalla [-p] [-h] [-n <cantidad>] <archivo_entrada> \n");
         printf("Notese que los parametros entre [] son opcionales\n");
         exit(1);
     }
- }
+}
 
  int main (int argc, char** argv){
 
@@ -119,7 +119,6 @@ void* llamada_a_lanzar_bomba(void *arg) {
     // Se conserva el estado original del Campo de batalla
     objetivo *objetivos_originales = clonar_objetivos(lista_objetivos);
 
-
     fscanf(archivo,"%d",&numBombas);
     bomba *bombas = NULL;   // Lista para almacenar las bombas
 
@@ -198,13 +197,15 @@ void* llamada_a_lanzar_bomba(void *arg) {
         }
         else {
 
-            // COMENTA AQUI PLS
-            pid_t pid_padre = getpid();
-            pid_t arreglo_procesos[nvalue];
-            int llave_semaforos = 15;
-            int llave_objetivos = 16;
+            // Se inicializan variables necearias para los procesos
+            pid_t pid_padre = getpid();     // Se guarda el ID del proceso padre
+            pid_t arreglo_procesos[nvalue]; // Se crea un arreglo para el ID de los hijos
+            int llave_semaforos = -2;       // Se declaran dos llaves para dos espacios de memoria compartida
+            int llave_objetivos = -1;
             int arreglo_semaforos_id = shmget(llave_semaforos, sizeof(sem_t), IPC_CREAT | 0775);
             int lista_objetivos_id = shmget(llave_objetivos, sizeof(objetivo*), IPC_CREAT | 0775);
+            // Se pide memoria al sistema para guardar un semaforo para resolver el problema de exclusion mutua
+            // y para guardar los objetivos y puedan ser modificados por los procesos hijos
             if (arreglo_semaforos_id == -1) {
                 printf("Error en la alocacion de memoria para semaforo\n");
                  exit(1);
@@ -225,6 +226,7 @@ void* llamada_a_lanzar_bomba(void *arg) {
             objetivo* lista_objetivos_compartida = (objetivo*) shmat(lista_objetivos_id, NULL, 0);
             clonar_objetivos_compartida(lista_objetivos, &lista_objetivos_compartida);
             
+            // Se inicializan los procesos hijos
             for (cont = 0; cont < nvalue; cont++) {
                 if (getpid() == pid_padre) {
                     arreglo_procesos[cont] = fork();
@@ -238,6 +240,7 @@ void* llamada_a_lanzar_bomba(void *arg) {
             if (getpid() != pid_padre) {
                 cont--;
                 lanzar_lista_bombas_proceso(&lista_objetivos_compartida, arreglo_bombas[cont], semaforo_seccion_critica[0]);
+                // Al terminar de lanzar sus respectivas bombas el proceso actual termina
                 exit(1);
             } else {
                 // Se espera en el proceso principal a que terminen todos los hijos
@@ -247,6 +250,16 @@ void* llamada_a_lanzar_bomba(void *arg) {
             }
 
             r = comparar_objetivos(objetivos_originales, lista_objetivos_compartida);
+            
+            // Se desacoplan los espacios de memoria reservados
+            if (shmdt(semaforo_seccion_critica) == -1) {
+                printf("Error desacoplando de memoria compartida de semaforos");
+                exit(1);
+            }
+            if (shmdt(lista_objetivos_compartida) == -1) {
+                printf("Error desacoplando de memoria compartida de objetivos\n");
+                exit(1);
+            }
 
         }
 
@@ -259,6 +272,13 @@ void* llamada_a_lanzar_bomba(void *arg) {
     tiempo_final = clock();
     tiempo_usado = ((double) tiempo_final - tiempo_inicio) / CLOCKS_PER_SEC;
     printf("Tiempo usado: %f\n", tiempo_usado);
+
+    // Por ultimo se libera la memoria de las listas de objetivos y bombas
+    liberar_objetivos(&lista_objetivos);
+    liberar_objetivos(&objetivos_originales);
+    for(cont = 0; cont < nvalue; cont++) {
+        liberar_bombas(&arreglo_bombas[cont]);
+    }
 
     return 0;
 

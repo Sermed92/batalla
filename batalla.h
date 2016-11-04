@@ -32,6 +32,7 @@ typedef struct _respuesta {
         int destruidosC;        
 } respuesta;
 
+// Estructura para la cola de objetivos
 typedef struct _objetivo {
         int coord1;
         int coord2;
@@ -54,5 +55,8 @@ void clonar_objetivos_compartida(objetivo*, objetivo**);
 
 respuesta comparar_objetivos(objetivo*, objetivo*);
 void imprimir_respuesta(respuesta);
+
+void liberar_objetivos(objetivo**);
+void liberar_bombas(bomba**);
 
 #endif

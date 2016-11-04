@@ -1,6 +1,6 @@
 #include "batalla.h"
 
-int llave = 0;
+int llave = 5;
 
 // Funcion para crear un nuevo nodo de tipo bomba
 bomba *nueva_bomba(int coord1, int coord2, int potencia, int radio) {
@@ -273,4 +273,28 @@ respuesta comparar_objetivos(objetivo *estado_inicial, objetivo *estado_final) {
     }
 
     return r;
+}
+
+// Procedimiento para liberar la memoria usada por una lista de objetivos
+void liberar_objetivos(objetivo **objetivos) {
+    objetivo *objetivo_actual = *objetivos;
+    while(objetivo_actual != NULL) {
+        *objetivos = (*objetivos) -> siguiente;
+        if (objetivo_actual != NULL) {
+            free(objetivo_actual);
+        }
+        objetivo_actual = *objetivos;
+    }
+}
+
+// Procedimiento para liberar la memoria usada por una lista de bombas
+void liberar_bombas(bomba **bombas) {
+    bomba *bomba_actual = *bombas;
+    while(bomba_actual != NULL) {
+        *bombas = (*bombas) -> siguiente;
+        if (bomba_actual != NULL) {
+            free(bomba_actual);
+        }
+        bomba_actual = *bombas;
+    }
 }
