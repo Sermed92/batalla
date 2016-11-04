@@ -237,11 +237,15 @@ void numeroArgumentos(int cantidad){
                 }
             }
 
-            /// Poner a trabajar a los hijos
+            // Poner a trabajar a los hijos
             if (getpid() != pid_padre) {
                 cont--;
                 lanzar_lista_bombas_proceso(&lista_objetivos_compartida, arreglo_bombas[cont], semaforo_seccion_critica[0]);
                 // Al terminar de lanzar sus respectivas bombas el proceso actual termina
+                // liberando la memoria que tenian reservada
+                for (cont = 0; cont < nvalue; cont++) {
+                    liberar_bombas(&arreglo_bombas[cont]);
+                }
                 exit(1);
             } else {
                 // Se espera en el proceso principal a que terminen todos los hijos
