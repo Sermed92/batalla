@@ -194,6 +194,7 @@ void numeroArgumentos(int cantidad){
         if (nvalue == 1) {
             // Solo trabajar sobre proceso padre
             lanzar_lista_bombas(&lista_objetivos, arreglo_bombas[0]);
+            r = comparar_objetivos(objetivos_originales, lista_objetivos);
         }
         else {
 
