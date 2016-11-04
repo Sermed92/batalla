@@ -104,8 +104,6 @@ void* llamada_a_lanzar_bomba(void *arg) {
         fscanf(archivo,"%d %d %d", &cord1, &cord2, &valor);
         agregar_objetivo(&lista_objetivos, cord1,cord2,valor);        
     }
-    printf("Estado inicial:\n");
-    imprimir_objetivos(lista_objetivos);
 
     objetivo *objetivos_originales = clonar_objetivos(lista_objetivos);
 
@@ -128,7 +126,6 @@ void* llamada_a_lanzar_bomba(void *arg) {
     } else if (nvalue == 0) {
         nvalue = 1;
     }
-    //bomba *temp = bombas;
     
     // Repartir bombas en un arreglo
     int cont = 0;
@@ -156,30 +153,28 @@ void* llamada_a_lanzar_bomba(void *arg) {
     }
     /*/
 
+    respuesta r;
     tiempo_inicio = clock();
 
     if (hflag==1) {
         //Se trabajara con hilos
-        printf("Soy hilos");
-        printf(" N = %i\n",nvalue);
 
+        // Se inicializan los hilos
         pthread_t arreglo_hilos[nvalue];
         for (cont = 0; cont < nvalue; cont++) {
             pthread_create(&arreglo_hilos[cont], NULL, llamada_a_lanzar_bomba, arreglo_bombas[cont]);
         }
+        // Se espera en el proceso principal a que terminen todos los hilos
         for (cont = 0; cont < nvalue; cont++) {
             pthread_join(arreglo_hilos[cont],NULL);
         }
+
+        r = comparar_objetivos(objetivos_originales, lista_objetivos);
+
     } else {
         // p opcion por defecto, no entrara si se da el argumento de hilo
         //Se trabajara con procesos
-        printf("Soy procesos");
-        printf(" N= %i\n",nvalue);
 
-        // while (temp != NULL) {
-        //     llamada_a_lanzar_bomba(temp);
-        //     temp = temp -> siguiente;
-        // }
         if (nvalue == 1) {
             // Solo trabajar sobre proceso padre
             lanzar_lista_bombas(&lista_objetivos, arreglo_bombas[0]);
@@ -187,12 +182,16 @@ void* llamada_a_lanzar_bomba(void *arg) {
         else {
             pid_t pid_padre = getpid();
             pid_t arreglo_procesos[nvalue];
-            //int arreglo_pipes[nvalue][2];
-            //sem_t arreglo_semaforos[nvalue];
-            int llave = 99999;
-            int arreglo_semaforos_id = shmget(llave, sizeof(sem_t), IPC_CREAT | 0775);
+            int llave_semaforos = 15;
+            int llave_objetivos = 16;
+            int arreglo_semaforos_id = shmget(llave_semaforos, sizeof(sem_t), IPC_CREAT | 0775);
+            int lista_objetivos_id = shmget(llave_objetivos, sizeof(objetivo*), IPC_CREAT | 0775);
             if (arreglo_semaforos_id == -1) {
                 printf("Error en la alocacion de memoria para semaforo\n");
+                 exit(1);
+            }
+            if (lista_objetivos_id == -1) {
+                printf("Error en la alocacion de memoria para objetivos\n");
                 exit(1);
             }
             // Se crea un semaforo en memoria compartida para evitar el problema de seccion critica
@@ -203,7 +202,9 @@ void* llamada_a_lanzar_bomba(void *arg) {
             }
             sem_init(&semaforo_seccion_critica[0], 1, 1);
 
-            printf("Principal: %d\n", pid_padre);
+            // Se crea un espacio en memoria compartida para compartir los bojetivos entre los procesos
+            objetivo* lista_objetivos_compartida = (objetivo*) shmat(lista_objetivos_id, NULL, 0);
+            clonar_objetivos_compartida(lista_objetivos, &lista_objetivos_compartida);
             
             for (cont = 0; cont < nvalue; cont++) {
                 if (getpid() == pid_padre) {
@@ -217,11 +218,7 @@ void* llamada_a_lanzar_bomba(void *arg) {
             /// Poner a trabajar a los hijos
             if (getpid() != pid_padre) {
                 cont--;
-                printf("Activo proceso %d id: %d padre: %d\n", cont, getpid(), getppid());
-                lanzar_lista_bombas_proceso(&lista_objetivos, arreglo_bombas[cont], semaforo_seccion_critica[0]);
-                printf("Termino proceso %d\n", getpid());
-                printf("Estado final en %d\n", getpid());
-                imprimir_objetivos(lista_objetivos);
+                lanzar_lista_bombas_proceso(&lista_objetivos_compartida, arreglo_bombas[cont], semaforo_seccion_critica[0]);
                 exit(1);
             } else {
                 // Se espera en el proceso principal a que terminen todos los hijos
@@ -230,16 +227,11 @@ void* llamada_a_lanzar_bomba(void *arg) {
                 }
             }
 
-            printf("Terminaron hijos\n");
-            printf("Termino padre\n");
+            r = comparar_objetivos(objetivos_originales, lista_objetivos_compartida);
+
         }
 
     }
-
-    printf("Estado final:\n");
-    imprimir_objetivos(lista_objetivos);
-
-    respuesta r = comparar_objetivos(objetivos_originales, lista_objetivos);
 
     imprimir_respuesta(r);
 

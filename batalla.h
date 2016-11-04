@@ -50,6 +50,7 @@ void lanzar_lista_bombas(objetivo**, bomba*);
 void lanzar_lista_bombas_proceso(objetivo **, bomba*, sem_t);
 
 objetivo *clonar_objetivos(objetivo*);
+void clonar_objetivos_compartida(objetivo*, objetivo**);
 
 respuesta comparar_objetivos(objetivo*, objetivo*);
 void imprimir_respuesta(respuesta);

@@ -1,5 +1,7 @@
 #include "batalla.h"
 
+int llave = 0;
+
 // Funcion para crear un nuevo nodo de tipo bomba
 bomba *nueva_bomba(int coord1, int coord2, int potencia, int radio) {
     bomba *bomba_nueva = (bomba*) malloc(sizeof(bomba));
@@ -150,11 +152,8 @@ void lanzar_bomba_proceso(objetivo **objetivos, bomba *bomba_actual, sem_t semaf
     objetivo *objetivo_actual = *objetivos;
     while (objetivo_actual != NULL) {
         if (esta_en_radio(objetivo_actual, bomba_actual)) {
-            printf("Espero semaforo de seccion critica en %d\n", getpid());
             sem_wait(&semaforo);
-            printf("Entro a seccion critica en %d\n", getpid());
             procesar_impacto(&objetivo_actual, bomba_actual);
-            printf("Sali de seccion critica en %d\n", getpid());
             sem_post(&semaforo);
         }
         objetivo_actual = objetivo_actual -> siguiente;
@@ -171,6 +170,9 @@ void lanzar_lista_bombas_proceso(objetivo **objetivos, bomba *bombas_actuales, s
 
 // Funcion para crear una copiar de una lista de objetivos
 objetivo *clonar_objetivos(objetivo *objetivos) {
+    if (objetivos == NULL) {
+        return NULL;
+    }
     objetivo *temp = objetivos;
     objetivo *nuevos_objetivos = nuevo_objetivo(temp-> coord1, temp -> coord2, temp -> resistencia);
     objetivo *tempN = nuevos_objetivos;
@@ -183,14 +185,52 @@ objetivo *clonar_objetivos(objetivo *objetivos) {
     return nuevos_objetivos;
 }
 
+// Funcion para clonar un objetivo en memoria compartida devolviendo su apuntador
+objetivo *nuevo_objetivo_compartida(objetivo *objetivo_actual) {
+    llave++;
+    int objetivo_id = shmget(llave, sizeof(objetivo), IPC_CREAT | 0775);
+    if (objetivo_id == -1) {
+        printf("Error en la alocacion de memoria compartida para objetivo");
+        exit(1);
+    }
+
+    objetivo *nuevo_objetivo = (objetivo*) shmat(objetivo_id, NULL, 0);
+    if (nuevo_objetivo == (void*)-1) {
+        printf("Error en la acoplacion de memoria compartida para un objetivo\n");
+        exit(1);
+    }
+    nuevo_objetivo -> coord1 = objetivo_actual -> coord1;
+    nuevo_objetivo -> coord2 = objetivo_actual -> coord2;
+    nuevo_objetivo -> resistencia = objetivo_actual -> resistencia;
+    nuevo_objetivo -> siguiente = NULL;
+    return nuevo_objetivo;
+}
+
+// Procedimiento para clonar una lista de objetivos en memoria compartida
+// recibiendo el primer apuntador
+void clonar_objetivos_compartida(objetivo *objetivos, objetivo **objetivos_compartidos) {
+    if (objetivos == NULL) {
+        return;
+    }
+    objetivo *objetivo_actual = objetivos;
+    *objetivos_compartidos = nuevo_objetivo_compartida(objetivo_actual);
+    objetivo *temp = objetivos -> siguiente;
+    objetivo *temp_nuevo = *objetivos_compartidos;
+    while (temp != NULL) {
+        temp_nuevo -> siguiente = nuevo_objetivo_compartida(temp);
+        temp = temp ->siguiente;
+        temp_nuevo = temp_nuevo -> siguiente;
+    }
+}
+
 // Procedimiento para mostrar una respuesta
 void imprimir_respuesta(respuesta r) {
-    printf("Respuesta:\nObjetivos militares intactos: %i\n", r.intactosM);
-    printf("Objetivos militares parcialmente destruidos: %i\n", r.parcialM);
-    printf("Objetivos militares totalmente destruidos: %i\n", r.destruidosM);
-    printf("Objetivos civiles intactos: %i\n", r.intactosC);
-    printf("Objetivos civiles parcialmente destruidos: %i\n", r.parcialC);
-    printf("Objetivos civiles totalmente destruidos: %i\n", r.destruidosC);
+    printf("Objetivos militares intactos: %d\n", r.intactosM);
+    printf("Objetivos militares parcialmente destruidos: %d\n", r.parcialM);
+    printf("Objetivos militares totalmente destruidos: %d\n", r.destruidosM);
+    printf("Objetivos civiles intactos: %d\n", r.intactosC);
+    printf("Objetivos civiles parcialmente destruidos: %d\n", r.parcialC);
+    printf("Objetivos civiles totalmente destruidos: %d\n", r.destruidosC);
 }
 
 // Funcion para comparar los objetivos con su estado inicial y dar una respuesta
