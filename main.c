@@ -8,7 +8,7 @@
 
 #include "batalla.h"
 
-// Lista de objetivos como global para poder ser leida por los hilos
+// Lista de objetivos global
 objetivo *lista_objetivos;
 
 void* llamada_a_lanzar_bomba(void *arg) {
@@ -17,7 +17,8 @@ void* llamada_a_lanzar_bomba(void *arg) {
     return NULL;
 }
 
-// Finaliza el programa si no posee la cantidad de argumentos necesarios, despues de indicar la forma correcta
+// Finaliza el programa si no posee la cantidad de argumentos necesarios
+// Indica la forma correcta
  void numeroArgumentos(int cantidad){
     if ((cantidad < 2) || (cantidad > 5)){
         printf("Violacion de parametros, pruebe: \n");
@@ -31,16 +32,19 @@ void* llamada_a_lanzar_bomba(void *arg) {
 
     numeroArgumentos(argc);
 
+    // Variables para la lectura de argumentos
     int hflag = 0;
     int pflag = 0;
     int nvalue = 0;
     int n;
 
+    // Variables para medir el tiempo en que se lanzan las bombas
     clock_t tiempo_inicio, tiempo_final;
     double tiempo_usado;
 
     opterr = 0;
 
+    // Se procesan los argumentos
     while ((n = getopt(argc, argv, "hpn:")) != -1){
         switch(n){
             case 'h':
@@ -76,6 +80,7 @@ void* llamada_a_lanzar_bomba(void *arg) {
         }
     }
 
+    // Abortar si se intenta trabajar con hilos y procesos
     if ((hflag==1) && (pflag==1)){
         printf("-h y -p son opciones excluyentes\n");
         exit(1);
@@ -85,82 +90,94 @@ void* llamada_a_lanzar_bomba(void *arg) {
     FILE *archivo = NULL;
     archivo = fopen(argv[optind], "r");
 
+    // No se encuentra en el directorio
     if (archivo == NULL) {
         printf(" ERROR: Archivo no encontrado \n");
         exit(1);
     }
 
-    int tamanio, objetivos, numBombas, cord1, cord2, valor;
-    
+    // Variables para la lectura de los valores en el archivo
+    int tamanio, objetivos, numBombas, cord1, cord2, valor, radio, potencia;
+    int cont; // contador multipropositos
+    lista_objetivos = NULL; // Se prepara la lista para trabajar en ella
+
     fscanf(archivo,"%d",&tamanio);
-
-    int i;
-    
-    lista_objetivos = NULL;
-
     fscanf(archivo,"%d",&objetivos);
 
-    for (i = 0; i<objetivos; i++){
+    // Se almacenan los objetivos de importancia en el mapa
+    for (cont = 0; cont<objetivos; cont++){
         fscanf(archivo,"%d %d %d", &cord1, &cord2, &valor);
-        agregar_objetivo(&lista_objetivos, cord1,cord2,valor);        
+
+        // Las coordenadas deben existir en el mapa
+        if (cord1 > 0 && cord1 <tamanio){
+            if (cord2 > 0 && cord2 < tamanio){
+                agregar_objetivo(&lista_objetivos, cord1,cord2,valor);                        
+            }
+        }
     }
 
+    // Se conserva el estado original del Campo de batalla
     objetivo *objetivos_originales = clonar_objetivos(lista_objetivos);
 
+
     fscanf(archivo,"%d",&numBombas);
+    bomba *bombas = NULL;   // Lista para almacenar las bombas
 
-    int radio, potencia;
-    bomba *bombas = NULL;
-
-    //Se guardan las bombas que serán usadas
-
-    for (i = 0; i < numBombas; i++){
+    //Se guardan las bombas que seran usadas
+    for (cont = 0; cont < numBombas; cont++){
         fscanf(archivo,"%d %d %d %d", &cord1, &cord2, &radio, &potencia);
-        agregar_bomba(&bombas,cord1, cord2, potencia, radio);
+
+        // Las coordenadas deben existir en el mapa
+        if (cord1 > 0 && cord1 <tamanio){
+            if (cord2 > 0 && cord2 < tamanio){        
+                agregar_bomba(&bombas,cord1, cord2, potencia, radio);
+            }
+        }
     }
 
-    fclose(archivo);
+    fclose(archivo);    // Archivo leido, se cierra 
     
+    // Si la cantidad de procesos/hilos es mayor que el numero de bombas
+    // Se le asigna la cantidad de bombas (y se repartira 1 bomba por proceso)
     if (nvalue != 0 && nvalue >= numBombas){
         nvalue = numBombas;
     } else if (nvalue == 0) {
+        // Si no se usa el argumento -n, se le asigna 1 para crear el arreglo
         nvalue = 1;
     }
     
-    // Repartir bombas en un arreglo
-    int cont = 0;
+    // Repartir bombas en un arreglo de tamanio nvalue
+    cont = 0;
     bomba* arreglo_bombas [nvalue];
+    // Inicializar arreglo (evitar que haya basura)
     while (cont < nvalue) {
         arreglo_bombas[cont] = NULL;
         cont++;
     }
-    cont = 0;
 
+    cont = 0;
     bomba *bomba_actual;
+    // Se agregan las bombas al arreglo
     while (bombas != NULL) {
         bomba_actual = bombas;
         bombas = bombas -> siguiente;
+        // Se usa mod(cont, nvalue) para recorrer el arreglo varias veces
         bomba_actual -> siguiente = arreglo_bombas[cont%nvalue];
         arreglo_bombas[cont%nvalue] = bomba_actual;
         
         cont++;
     }
-    /*/ Imprimir arreglo de bombas
-    cont = 0;
-    for (cont = 0; cont < nvalue; cont ++){
-        printf("Bombas posicion: %d\n", cont);
-        imprimir_bombas(arreglo_bombas[cont]);
-    }
-    /*/
 
-    respuesta r;
-    tiempo_inicio = clock();
+    respuesta r;             // Se prepara la respuesta
+    tiempo_inicio = clock(); // Se guarda el tiempo inicial
 
     if (hflag==1) {
         //Se trabajara con hilos
 
-        // Se inicializan los hilos
+        // Se crea el arreglo de hilos
         pthread_t arreglo_hilos[nvalue];
+
+        // Se crean los hilos y se les asigna la tarea a realizar y el espacio sobre el cual hacerlo
         for (cont = 0; cont < nvalue; cont++) {
             pthread_create(&arreglo_hilos[cont], NULL, llamada_a_lanzar_bomba, arreglo_bombas[cont]);
         }
@@ -169,17 +186,19 @@ void* llamada_a_lanzar_bomba(void *arg) {
             pthread_join(arreglo_hilos[cont],NULL);
         }
 
+        // Se guarda en la respuesta las diferencias entre la lista original y la modificada por los hilos
         r = comparar_objetivos(objetivos_originales, lista_objetivos);
 
     } else {
-        // p opcion por defecto, no entrara si se da el argumento de hilo
-        //Se trabajara con procesos
+        // Procesos es la opcion por defecto
 
         if (nvalue == 1) {
             // Solo trabajar sobre proceso padre
             lanzar_lista_bombas(&lista_objetivos, arreglo_bombas[0]);
         }
         else {
+
+            // COMENTA AQUI PLS
             pid_t pid_padre = getpid();
             pid_t arreglo_procesos[nvalue];
             int llave_semaforos = 15;
@@ -233,9 +252,10 @@ void* llamada_a_lanzar_bomba(void *arg) {
 
     }
 
+    // Se imprime la respuesta
     imprimir_respuesta(r);
 
-    // Se toma el tiempo final y se calcula el tiempo usado
+    // Se toma el tiempo fina, se calcula el tiempo usado, se imprime para comparar resultados
     tiempo_final = clock();
     tiempo_usado = ((double) tiempo_final - tiempo_inicio) / CLOCKS_PER_SEC;
     printf("Tiempo usado: %f\n", tiempo_usado);
