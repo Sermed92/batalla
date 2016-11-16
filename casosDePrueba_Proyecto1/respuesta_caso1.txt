@@ -1,0 +1,6 @@
+Objetivos Militar  totalmente destruidos: 1
+Objetivos Militar  parcialmente destruidos: 3
+Objetivos Militar  no afectados: 1
+Objetivos Civil  totalmente destruidos: 0
+Objetivos Civil parcialmente destruidos: 2
+Objetivos Civil  no afectados: 4

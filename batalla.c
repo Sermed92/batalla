@@ -99,15 +99,11 @@ bomba *pop_bomba (bomba** lista_bombas) {
 // Funcion para determinar si un bojetivo esta dentro del rango de accion de una bomba
 // retorna 1 si el objetivo esta en rango o 0 en caso contrario
 int esta_en_radio (objetivo *objetivo_actual, bomba *bomba_actual) {
-    if (bomba_actual -> coord1 - bomba_actual -> radio <= objetivo_actual -> coord1) {
-        if (objetivo_actual -> coord1 <= bomba_actual -> coord1 + bomba_actual -> radio) {
-            if (bomba_actual -> coord2 - bomba_actual -> radio <= objetivo_actual -> coord2) {
-                if (objetivo_actual -> coord1 <= bomba_actual -> coord1 + bomba_actual -> radio) {
-                    return 1;
-                }
-            }
-        }
-    }
+    if (bomba_actual -> coord1 - bomba_actual -> radio <= objetivo_actual -> coord1 && 
+        bomba_actual -> coord1 + bomba_actual -> radio >= objetivo_actual -> coord1 &&
+        bomba_actual -> coord2 - bomba_actual -> radio <= objetivo_actual -> coord2 &&
+        bomba_actual -> coord2 + bomba_actual -> radio >= objetivo_actual -> coord2 )
+            return 1;
     return 0;
 }
 

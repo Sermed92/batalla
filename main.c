@@ -269,7 +269,6 @@ void numeroArgumentos(int cantidad){
         }
 
     }
-
     // Se imprime la respuesta
     imprimir_respuesta(r);
 
